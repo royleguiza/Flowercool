@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile containing gaming stats, skins, accessories, and experience.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "level": { "type": "number" },
+        "xp": { "type": "number" },
+        "highScore": { "type": "number" },
+        "coins": { "type": "number" },
+        "equippedSkin": { "type": "string" },
+        "equippedAccessory": { "type": "string" },
+        "unlockedSkins": { "type": "array" },
+        "unlockedAccessories": { "type": "array" }
+      },
+      "required": ["userId", "username", "level", "xp", "highScore", "coins", "equippedSkin", "equippedAccessory", "unlockedSkins", "unlockedAccessories"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "Updates, streaming notices, or community publications.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["postId", "authorId", "authorName", "authorAvatar", "content", "type", "likesCount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles and performance stats."
+    },
+    "posts/{postId}": {
+      "schema": "CommunityPost",
+      "description": "YouTube or social community streaming posts and gameplay progress share."
+    }
+  }
+}

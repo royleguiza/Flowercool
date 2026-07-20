@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 1. UserProfile Validation
+    function isValidUserProfile(data) {
+      return data.userId is string 
+        && data.username is string 
+        && data.username.size() <= 40
+        && data.level is number 
+        && data.xp is number
+        && data.highScore is number
+        && data.coins is number
+        && data.equippedSkin is string
+        && data.equippedAccessory is string
+        && data.unlockedSkins is list
+        && data.unlockedAccessories is list;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) 
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().userId == request.auth.uid;
+      
+      allow update: if isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().userId == existing().userId;
+    }
+
+    // 2. CommunityPosts Validation
+    function isValidPost(data) {
+      return data.postId is string
+        && data.authorId is string
+        && data.authorId == request.auth.uid
+        && data.authorName is string
+        && data.authorName.size() <= 40
+        && data.authorAvatar is string
+        && data.content is string
+        && data.content.size() <= 500
+        && data.type is string
+        && data.type.size() <= 20
+        && data.likesCount is number;
+    }
+
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && isValidId(postId)
+        && isValidPost(incoming())
+        && incoming().postId == postId;
+      
+      // Updates represent Action of liking or updating content
+      allow update: if isSignedIn()
+        && isValidPost(incoming())
+        && incoming().postId == existing().postId
+        && (
+          // Action: Like (any team member or player can increment like count)
+          (incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) && incoming().likesCount == existing().likesCount + 1)
+          ||
+          // Action: Edit post contents by owner
+          (existing().authorId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['content']))
+        );
+      
+      allow delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+  }
+}

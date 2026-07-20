@@ -1,0 +1,6 @@
+{
+  "name": "Flowercool.io 2",
+  "description": "Sleek, minimalist, and fluid real-time multiplayer flower combat game with customizable skins, interactive physics, competitive leaderboards, a cosmetic store, and community spaces.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
